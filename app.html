@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nib math - the app</title>
+<style>
+  :root { --ink:#2b2430; --bg:#f6f4f2; --card:#fff; --accent:#4a3b5c; --accent2:#63507a; --soft:#e8e0ee; }
+  * { box-sizing:border-box; margin:0; }
+  body { font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); padding:18px; }
+  .wrap { max-width:1180px; margin:0 auto; }
+  .lede { text-align:center; color:#5d5465; margin:6px 0 16px; font-size:15px; max-width:760px; margin-left:auto; margin-right:auto; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:18px; }
+  .card { background:var(--card); border-radius:14px; padding:22px; box-shadow:0 1px 3px rgba(50,35,70,.08); }
+  h2 { font-size:19px; margin-bottom:14px; }
+  label { display:block; font-size:13px; color:#6b6172; margin:10px 0 4px; }
+  input { width:100%; padding:9px 10px; border:1px solid #cfc6d8; border-radius:8px; font-size:15px; background:#fcfbfd; }
+  button { width:100%; margin-top:16px; padding:12px; border:0; border-radius:9px; background:var(--accent); color:#fff; font-size:15px; font-weight:600; cursor:pointer; }
+  button:hover { background:var(--accent2); }
+  .big { font-size:34px; font-weight:700; margin:14px 0 2px; }
+  .cap { font-size:13px; color:#6b6172; }
+  .pill { display:inline-block; margin-top:10px; padding:5px 12px; border-radius:20px; font-size:13px; font-weight:600; }
+  .pill.warm { background:var(--soft); color:var(--accent); }
+  table { width:100%; margin-top:12px; border-collapse:collapse; font-size:14px; }
+  td { padding:7px 0; border-bottom:1px solid #e2dce8; }
+  td:last-child { text-align:right; font-weight:600; }
+  .err { color:#a3341f; font-size:14px; margin-top:10px; }
+  .foot { margin-top:20px; font-size:12.5px; color:#7a7180; line-height:1.6; }
+  .foot a { color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="lede">Calligraphy is measurement before it is art. The nib width is the ruler; everything else is multiplication.</p>
+  <div class="cards">
+    <div class="card">
+      <h2>Guideline ladder</h2>
+      <label for="la_nib">Nib width (mm)</label>
+      <input id="la_nib" type="number" value="2" min="0" step="0.1">
+      <label for="la_x">X-height (nib widths)</label>
+      <input id="la_x" type="number" value="5" min="0" step="0.5">
+      <label for="la_a">Ascender space (nib widths)</label>
+      <input id="la_a" type="number" value="3" min="0" step="0.5">
+      <label for="la_d">Descender space (nib widths)</label>
+      <input id="la_d" type="number" value="3" min="0" step="0.5">
+      <button id="la_go">Draw the ladder</button>
+      <div class="big" id="la_line">-</div>
+      <div class="cap">full line height (mm)</div>
+      <div class="pill warm" id="la_verdict" style="display:none"></div>
+      <table id="la_rows" style="display:none">
+        <tr><td>x-height</td><td id="la_xmm">-</td></tr>
+        <tr><td>ascender space</td><td id="la_amm">-</td></tr>
+        <tr><td>descender space</td><td id="la_dmm">-</td></tr>
+      </table>
+      <div class="err" id="la_err"></div>
+    </div>
+    <div class="card">
+      <h2>Lines on the page</h2>
+      <label for="li_page">Page height (mm)</label>
+      <input id="li_page" type="number" value="297" min="0" step="1">
+      <label for="li_top">Top margin (mm)</label>
+      <input id="li_top" type="number" value="20" min="0" step="1">
+      <label for="li_bottom">Bottom margin (mm)</label>
+      <input id="li_bottom" type="number" value="20" min="0" step="1">
+      <label for="li_pitch">Line pitch (mm)</label>
+      <input id="li_pitch" type="number" value="11" min="0" step="0.5">
+      <button id="li_go">Count the lines</button>
+      <div class="big" id="li_n">-</div>
+      <div class="cap">full lines that fit</div>
+      <div class="pill warm" id="li_verdict" style="display:none"></div>
+      <table id="li_rows" style="display:none">
+        <tr><td>writable height</td><td id="li_w">-</td></tr>
+        <tr><td>leftover at the bottom</td><td id="li_lo">-</td></tr>
+      </table>
+      <div class="err" id="li_err"></div>
+    </div>
+    <div class="card">
+      <h2>Slant offset</h2>
+      <label for="sl_a">Slant angle (degrees from the baseline)</label>
+      <input id="sl_a" type="number" value="55" min="0" max="90" step="1">
+      <label for="sl_r">Vertical rise (mm)</label>
+      <input id="sl_r" type="number" value="22" min="0" step="1">
+      <button id="sl_go">Shear the guideline</button>
+      <div class="big" id="sl_off">-</div>
+      <div class="cap">horizontal offset (mm)</div>
+      <div class="pill warm" id="sl_verdict" style="display:none"></div>
+      <div class="err" id="sl_err"></div>
+    </div>
+    <div class="card">
+      <h2>Nib ruler</h2>
+      <label for="nb_d">Distance to measure (mm)</label>
+      <input id="nb_d" type="number" value="30" min="0" step="0.5">
+      <label for="nb_nib">Nib width (mm)</label>
+      <input id="nb_nib" type="number" value="2" min="0" step="0.1">
+      <button id="nb_go">Count the nib widths</button>
+      <div class="big" id="nb_n">-</div>
+      <div class="cap">nib widths</div>
+      <div class="pill warm" id="nb_verdict" style="display:none"></div>
+      <div class="err" id="nb_err"></div>
+    </div>
+  </div>
+  <p class="foot">Exact multiplication and division. The hand-name labels (compressed, mid zone, airy, classic slant) are craft norms, flagged as such - your hand, your call. <a href="index.html">Why this exists</a></p>
+</div>
+<script src="engine.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const g = id => parseFloat($(id).value);
+function show(id, txt) { const e = $(id); e.textContent = txt; e.style.display = txt ? 'inline-block' : 'none'; }
+document.getElementById('la_go').onclick = () => {
+  $('la_err').textContent = '';
+  try {
+    const r = Nibmath.ladder(g('la_nib'), g('la_x'), g('la_a'), g('la_d'));
+    $('la_line').textContent = r.lineHeightMm + ' mm';
+    show('la_verdict', r.verdict);
+    $('la_xmm').textContent = r.xHeightMm + ' mm';
+    $('la_amm').textContent = r.ascenderMm + ' mm';
+    $('la_dmm').textContent = r.descenderMm + ' mm';
+    $('la_rows').style.display = 'table';
+  } catch (e) { $('la_err').textContent = e.message; }
+};
+document.getElementById('li_go').onclick = () => {
+  $('li_err').textContent = '';
+  try {
+    const r = Nibmath.lines(g('li_page'), g('li_top'), g('li_bottom'), g('li_pitch'));
+    $('li_n').textContent = r.lines;
+    show('li_verdict', r.verdict);
+    $('li_w').textContent = r.writableMm + ' mm';
+    $('li_lo').textContent = r.leftoverMm + ' mm';
+    $('li_rows').style.display = 'table';
+  } catch (e) { $('li_err').textContent = e.message; }
+};
+document.getElementById('sl_go').onclick = () => {
+  $('sl_err').textContent = '';
+  try {
+    const r = Nibmath.slant(g('sl_a'), g('sl_r'));
+    $('sl_off').textContent = r.offsetMm + ' mm';
+    show('sl_verdict', r.verdict);
+  } catch (e) { $('sl_err').textContent = e.message; }
+};
+document.getElementById('nb_go').onclick = () => {
+  $('nb_err').textContent = '';
+  try {
+    const r = Nibmath.nibcount(g('nb_d'), g('nb_nib'));
+    $('nb_n').textContent = r.widths;
+    show('nb_verdict', r.verdict);
+  } catch (e) { $('nb_err').textContent = e.message; }
+};
+</script>
+</body>
+        </html>
